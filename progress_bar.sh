@@ -18,6 +18,7 @@ CODE_CURSOR_IN_SCROLL_AREA="\033[1A"
 COLOR_FG="\e[30m"
 COLOR_BG="\e[42m"
 COLOR_BG_BLOCKED="\e[43m"
+RESTORE_FG="\e[39m"
 RESTORE_BG="\e[49m"
 
 # Variables
@@ -54,11 +55,11 @@ setup_scroll_area() {
     # Save cursor
     echo -en "$CODE_SAVE_CURSOR"
     # Set scroll region (this will place the cursor in the top left)
-    #echo -en "\033[0;${lines}r"
+    echo -en "\033[0;${lines}r"
 
     # Restore cursor but ensure its inside the scrolling area
-    #echo -en "$CODE_RESTORE_CURSOR"
-    #echo -en "$CODE_CURSOR_IN_SCROLL_AREA"
+    echo -en "$CODE_RESTORE_CURSOR"
+    echo -en "$CODE_CURSOR_IN_SCROLL_AREA"
 
     # Store start timestamp to compute ETA
     if [ "$ETA_ENABLED" = "true" ]; then
@@ -72,19 +73,19 @@ setup_scroll_area() {
 destroy_scroll_area() {
     lines=$(tput lines)
     # Save cursor
-    #echo -en "$CODE_SAVE_CURSOR"
+    echo -en "$CODE_SAVE_CURSOR"
     # Set scroll region (this will place the cursor in the top left)
-    #echo -en "\033[0;${lines}r"
+    echo -en "\033[0;${lines}r"
 
     # Restore cursor but ensure its inside the scrolling area
-    #echo -en "$CODE_RESTORE_CURSOR"
-    #echo -en "$CODE_CURSOR_IN_SCROLL_AREA"
+    echo -en "$CODE_RESTORE_CURSOR"
+    echo -en "$CODE_CURSOR_IN_SCROLL_AREA"
 
     # We are done so clear the scroll bar
     clear_progress_bar
 
     # Scroll down a bit to avoid visual glitch when the screen area grows by one row
-    #echo -en "\n\n"
+    echo -en "\n\n"
 
     # Reset title for next usage
     PROGRESS_TITLE=""
@@ -103,7 +104,7 @@ format_eta() {
     local S=$((T%60))
     [ $D -eq 0 -a $H -eq 0 -a $M -eq 0 -a $S -eq 0 ] && echo "--:--:--" && return
     [ $D -gt 0 ] && printf '%d days, ' $D
-    #printf 'ETA: %d:%02.f:%02.f' $H $M $S
+    printf 'ETA: %d:%02.f:%02.f' $H $M $S
 }
 
 draw_progress_bar() {
@@ -144,7 +145,7 @@ draw_progress_bar() {
 
     # Draw progress bar
     PROGRESS_BLOCKED="false"
-    print_bar_text $percentage
+    print_bar_text $percentage "$extra" "$eta"
 
     # Restore cursor position
     echo -en "$CODE_RESTORE_CURSOR"
@@ -176,10 +177,10 @@ clear_progress_bar() {
     lines=$(tput lines)
     lines=$((lines))
     # Save cursor
-    #echo -en "$CODE_SAVE_CURSOR"
+    echo -en "$CODE_SAVE_CURSOR"
 
     # Move cursor position to last row
-    #echo -en "\033[${lines};0f"
+    echo -en "\033[${lines};0f"
 
     # clear progress bar
     tput el
@@ -208,7 +209,7 @@ print_bar_text() {
     # Prepare progress bar
     complete_size=$(((bar_size*percentage)/100))
     remainder_size=$((bar_size-complete_size))
-    progress_bar=$(printf_new "#" $complete_size; printf_new "." $remainder_size;);
+    progress_bar=$(echo -ne "["; printf_new "#" $complete_size; printf_new "." $remainder_size; echo -ne "]");
 
     # Print progress bar
     echo -ne " $PROGRESS_TITLE ${percentage}% ${progress_bar}${extra}"

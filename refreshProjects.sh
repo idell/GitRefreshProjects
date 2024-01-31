@@ -15,12 +15,15 @@ PROJECTS=$(ls -d */)
 array=($PROJECTS)
 TOTAL=${#array[@]}
 INDEX=0
-for element in "${array[@]}"
-do
-    echo "UPDATING:........................................................." $element
-    cd $DIR"/"$element
+for element in "${array[@]}"; do
+  echo "UPDATING:........................................................." $element
+  cd $DIR"/"$element
+  STATUS=$(git status | grep "On branch" | cut -d " " -f3)
+  if [ "$STATUS" = "master" ]; then
     git pull origin master --rebase
-    draw_progress_bar $INDEX
-    let "INDEX++"
+  else
+    git fetch origin
+  fi
+  draw_progress_bar $INDEX
+  let "INDEX++"
 done
-
